@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Проверка входных параметров
+# Checking input parameters
 if [ "$#" -ne 2 ]; then
-    echo "Использование: $0 <SOURCE> <TARGET_PARTITION>"
+    echo "Usage: $0 <SOURCE> <TARGET_PARTITION>"
     exit 1
 fi
 
@@ -10,62 +10,62 @@ SOURCE=$1
 TARGET_PARTITION=$2
 MOUNT_POINT="/mnt/target"
 
-# Определение типа клонирования
+# Determining cloning type
 if [ "$SOURCE" == "/" ]; then
-    echo "Клонирование загруженной системы..."
+    echo "Cloning the running system..."
     EXCLUDE="--exclude=/dev/* --exclude=/proc/* --exclude=/sys/* --exclude=/tmp/* --exclude=/run/* --exclude=/mnt/* --exclude=/media/* --exclude=/boot"
 elif [[ "$SOURCE" == /mnt/* ]]; then
-    echo "Клонирование примонтированного раздела..."
+    echo "Cloning a mounted partition..."
 
-    # Проверка структуры системы
+    # Checking system structure
     if [ ! -d "$SOURCE/bin" ] || [ ! -d "$SOURCE/etc" ] || [ ! -d "$SOURCE/boot" ]; then
-        echo "Ошибка: Источник $SOURCE не содержит базовой структуры системы!"
+        echo "Error: The source $SOURCE does not contain a basic system structure!"
         exit 1
     fi
 
-    EXCLUDE="--exclude=/boot" # Исключаем только boot
+    EXCLUDE="--exclude=/boot" # Excluding only boot
 else
-    echo "Ошибка: Неверный источник $SOURCE! Используйте '/' или '/mnt/...'"
+    echo "Error: Invalid source $SOURCE! Use '/' or '/mnt/...'"
     exit 1
 fi
 
-# Создание точки монтирования, если её нет
+# Creating the mount point if it does not exist
 if [ ! -d "$MOUNT_POINT" ]; then
     sudo mkdir -p "$MOUNT_POINT"
 fi
 
-# Монтирование целевого раздела
-sudo mount $TARGET_PARTITION $MOUNT_POINT || { echo "Ошибка: Не удалось смонтировать $TARGET_PARTITION!"; exit 1; }
+# Mounting the target partition
+sudo mount $TARGET_PARTITION $MOUNT_POINT || { echo "Error: Failed to mount $TARGET_PARTITION!"; exit 1; }
 
-# Проверка наличия файлов уже после монтирования
+# Checking for existing files after mounting
 if [ "$(ls -A $MOUNT_POINT 2>/dev/null)" ]; then
-    echo "Внимание: На $TARGET_PARTITION уже есть файлы."
-    echo "Хотите их удалить, чтобы создать точный клон? (y/n)"
+    echo "Warning: $TARGET_PARTITION already contains files."
+    echo "Do you want to delete them to create an exact clone? (y/n)"
     read USE_DELETE
 else
-    echo "Целевой раздел пуст, клонирование начнётся без удаления."
+    echo "Target partition is empty, cloning will proceed without deletion."
     USE_DELETE="n"
 fi
 
-# Если пользователь выбрал "y", добавляем --delete
+# If the user chose "y", add --delete option
 if [ "$USE_DELETE" == "y" ]; then
     DELETE_FLAG="--delete"
 else
     DELETE_FLAG=""
 fi
 
-# Копирование данных
-echo "Копирование данных из $SOURCE в $MOUNT_POINT..."
-sudo rsync -aAXv $DELETE_FLAG $SOURCE/ $MOUNT_POINT/ $EXCLUDE || { echo "Ошибка: Копирование завершилось неудачей!"; sudo umount $MOUNT_POINT; exit 1; }
+# Copying data
+echo "Copying data from $SOURCE to $MOUNT_POINT..."
+sudo rsync -aAXv $DELETE_FLAG $SOURCE/ $MOUNT_POINT/ $EXCLUDE || { echo "Error: Copying failed!"; sudo umount $MOUNT_POINT; exit 1; }
 
-# Обновление только строки с root (`/`) в fstab
+# Updating only the root (`/`) entry in fstab
 UUID_CLONE=$(sudo blkid -s UUID -o value $TARGET_PARTITION)
 sudo sed -i "s|^UUID=.* / ext4 .*|UUID=$UUID_CLONE / ext4 defaults 0 1|" $MOUNT_POINT/etc/fstab
 
-# Получение имени диска (например, sda из sda4)
+# Extracting disk name (e.g., "sda" from "sda4")
 DISK_NAME=$(echo "$TARGET_PARTITION" | sed 's/[0-9]*$//')
 
-# Установка GRUB внутри клона
+# Installing GRUB inside the clone
 sudo mount --bind /dev $MOUNT_POINT/dev
 sudo mount --bind /proc $MOUNT_POINT/proc
 sudo mount --bind /sys $MOUNT_POINT/sys
@@ -77,6 +77,6 @@ sudo umount $MOUNT_POINT/dev
 sudo umount $MOUNT_POINT/proc
 sudo umount $MOUNT_POINT/sys
 
-# Завершение
+# Finalizing
 sudo umount $MOUNT_POINT
-echo "Клонирование завершено успешно!"
+echo "Cloning completed successfully!"
