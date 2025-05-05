@@ -15,7 +15,7 @@
 ## Установка и использование
 ### Шаг 1: Сохраните скрипт
 ```bash
-git clone https://github.com/<ваш-репозиторий>/Linux-System-Cloner.git
+git clone https://github.com/vankerthis/Linux-System-Cloner.git
 cd Linux-System-Cloner
 chmod +x clone_system.sh
 ### Step 2: Run the script
@@ -61,4 +61,4 @@ sudo ./clone_system.sh /mnt/original-system /dev/sdb1
 ### Лицензия
 Проект распространяется под MIT License. Вы можете свободно использовать, изменять и распространять его.
 
-Автор: [ваше имя] GitHub: [ссылка на репозиторий]
+Автор: Ilia GitHub: https://github.com/vankerthis/Linux-System-Cloner/tree/main

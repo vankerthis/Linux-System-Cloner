@@ -15,7 +15,7 @@ This script allows you to **clone a Linux system** onto another disk partition, 
 ## Installation & Usage
 ### Step 1: Download the script
 ```bash
-git clone https://github.com/<your-repository>/Linux-System-Cloner.git
+git clone https://github.com/vankerthis/Linux-System-Cloner.git
 cd Linux-System-Cloner
 chmod +x clone_system.sh
 ```
@@ -59,4 +59,4 @@ Before cloning, the script scans the target partition after mounting it. If it d
 ### License
 This project is distributed under the MIT License. You are free to use, modify, and share it.
 
-Author:Ilia GitHub: [Your Repository Link]
+Author:Ilia GitHub: https://github.com/vankerthis/Linux-System-Cloner/tree/main
